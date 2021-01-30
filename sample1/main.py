@@ -8,7 +8,7 @@ from __future__ import print_function
 import cv2
 from OpticalFlowShowcase import *
 
-usage_text = '''
+usage_text = """
 Hit followings to switch to:
 1 - Dense optical flow by HSV color image (default);
 2 - Dense optical flow by lines;
@@ -20,18 +20,18 @@ Hit 's' to save image.
 Hit 'f' to flip image horizontally.
 
 Hit ESC to exit.
-'''
+"""
 
 
 def main():
     ## private routines
     def change(key, prevFrame):
         message, type = {
-            ord('1'): ('==> Dense_by_hsv', 'dense_hsv'),
-            ord('2'): ('==> Dense_by_lines', 'dense_lines'),
-            ord('3'): ('==> Dense_by_warp', 'dense_warp'),
-            ord('4'): ('==> Lucas-Kanade', 'lucas_kanade')
-        }.get(key, ('==> Dense_by_hsv', 'dense_hsv'))
+            ord("1"): ("==> Dense_by_hsv", "dense_hsv"),
+            ord("2"): ("==> Dense_by_lines", "dense_lines"),
+            ord("3"): ("==> Dense_by_warp", "dense_warp"),
+            ord("4"): ("==> Lucas-Kanade", "lucas_kanade"),
+        }.get(key, ("==> Dense_by_hsv", "dense_hsv"))
         print(message)
         of = CreateOpticalFlow(type)
         of.set1stFrame(prevFrame)
@@ -54,7 +54,7 @@ def main():
     ### try to get the first frame
     rval, frame = capture(vc)
     if rval:
-        of = change('1', frame)
+        of = change("1", frame)
 
     ### main work
     while rval:
@@ -67,16 +67,16 @@ def main():
         ### key operation
         key = cv2.waitKey(1)
         if key == 27:  # exit on ESC
-            print('Closing...')
+            print("Closing...")
             break
-        elif key == ord('s'):  # save
-            cv2.imwrite('img_raw.png', frame)
-            cv2.imwrite('img_w_flow.png', img)
+        elif key == ord("s"):  # save
+            cv2.imwrite("img_raw.png", frame)
+            cv2.imwrite("img_w_flow.png", img)
             print("Saved raw frame as 'img_raw.png' and displayed as 'img_w_flow.png'")
-        elif key == ord('f'):  # save
+        elif key == ord("f"):  # save
             flipImage = not flipImage
             print("Flip image: " + {True: "ON", False: "OFF"}.get(flipImage))
-        elif ord('1') <= key and key <= ord('4'):
+        elif ord("1") <= key and key <= ord("4"):
             of = change(key, frame)
 
     ## finish
@@ -84,6 +84,6 @@ def main():
     cv2.destroyWindow("preview")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print(usage_text)
     main()

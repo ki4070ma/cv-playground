@@ -12,21 +12,21 @@ import cv2
 
 
 class IOpticalFlow:
-    '''Interface of OpticalFlow classes'''
+    """Interface of OpticalFlow classes"""
 
     def set1stFrame(self, frame):
-        '''Set the starting frame'''
+        """Set the starting frame"""
         self.prev = frame
 
     def apply(self, frame):
-        '''Apply and return result display image (expected to be new object)'''
+        """Apply and return result display image (expected to be new object)"""
         result = frame.copy()
         self.prev = frame
         return result
 
 
 class DenseOpticalFlow(IOpticalFlow):
-    '''Abstract class for DenseOpticalFlow expressions'''
+    """Abstract class for DenseOpticalFlow expressions"""
 
     def set1stFrame(self, frame):
         self.prev = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -36,15 +36,16 @@ class DenseOpticalFlow(IOpticalFlow):
     def apply(self, frame):
         next = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-        flow = cv2.calcOpticalFlowFarneback(self.prev, next, None,
-                                            0.5, 3, 15, 3, 5, 1.2, 0)
+        flow = cv2.calcOpticalFlowFarneback(
+            self.prev, next, None, 0.5, 3, 15, 3, 5, 1.2, 0
+        )
 
         result = self.makeResult(next, flow)
         self.prev = next
         return result
 
     def makeResult(self, grayFrame, flow):
-        '''Replace this for each expression'''
+        """Replace this for each expression"""
         return frame.copy()
 
 
@@ -62,7 +63,9 @@ class DenseOpticalFlowByLines(DenseOpticalFlow):
 
     def makeResult(self, grayFrame, flow):
         h, w = grayFrame.shape[:2]
-        y, x = np.mgrid[self.step // 2:h:self.step, self.step // 2:w:self.step].reshape(2, -1)
+        y, x = np.mgrid[
+            self.step // 2 : h : self.step, self.step // 2 : w : self.step
+        ].reshape(2, -1)
         fx, fy = flow[y, x].T
         lines = np.vstack([x, y, x + fx, y + fy]).T.reshape(-1, 2, 2)
         lines = np.int32(lines + 0.5)
@@ -85,22 +88,25 @@ class DenseOpticalFlowByWarp(DenseOpticalFlow):
 class LucasKanadeOpticalFlow(IOpticalFlow):
     def __init__(self):
         # params for ShiTomasi corner detection
-        self.feature_params = dict(maxCorners=100,
-                                   qualityLevel=0.3,
-                                   minDistance=7,
-                                   blockSize=7)
+        self.feature_params = dict(
+            maxCorners=100, qualityLevel=0.3, minDistance=7, blockSize=7
+        )
 
         # Parameters for lucas kanade optical flow
-        self.lk_params = dict(winSize=(15, 15),
-                              maxLevel=2,
-                              criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
+        self.lk_params = dict(
+            winSize=(15, 15),
+            maxLevel=2,
+            criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03),
+        )
 
         # Create some random colors
         self.color = np.random.randint(0, 255, (100, 3))
 
     def set1stFrame(self, frame):
         self.old_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        self.p0 = cv2.goodFeaturesToTrack(self.old_gray, mask=None, **self.feature_params)
+        self.p0 = cv2.goodFeaturesToTrack(
+            self.old_gray, mask=None, **self.feature_params
+        )
         # Create a mask image for drawing purposes
         self.mask = np.zeros_like(frame)
 
@@ -108,8 +114,9 @@ class LucasKanadeOpticalFlow(IOpticalFlow):
         frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         # calculate optical flow
-        p1, st, err = cv2.calcOpticalFlowPyrLK(self.old_gray, frame_gray,
-                                               self.p0, None, **self.lk_params)
+        p1, st, err = cv2.calcOpticalFlowPyrLK(
+            self.old_gray, frame_gray, self.p0, None, **self.lk_params
+        )
 
         # Select good points
         good_new = p1[st == 1]
@@ -131,7 +138,7 @@ class LucasKanadeOpticalFlow(IOpticalFlow):
 
 
 def CreateOpticalFlow(type):
-    '''Optical flow showcase factory, call by type as shown below'''
+    """Optical flow showcase factory, call by type as shown below"""
 
     def dense_by_hsv():
         return DenseOpticalFlowByHSV()
@@ -146,8 +153,8 @@ def CreateOpticalFlow(type):
         return LucasKanadeOpticalFlow()
 
     return {
-        'dense_hsv': dense_by_hsv,
-        'dense_lines': dense_by_lines,
-        'dense_warp': dense_by_warp,
-        'lucas_kanade': lucas_kanade
+        "dense_hsv": dense_by_hsv,
+        "dense_lines": dense_by_lines,
+        "dense_warp": dense_by_warp,
+        "lucas_kanade": lucas_kanade,
     }.get(type, dense_by_lines)()
